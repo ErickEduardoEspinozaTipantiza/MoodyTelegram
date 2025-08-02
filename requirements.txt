@@ -1,0 +1,14 @@
+python-telegram-bot==20.7
+tensorflow==2.15.0
+scikit-learn==1.3.2
+numpy==1.24.3
+pandas==2.1.4
+librosa==0.10.1
+reportlab==4.0.8
+fpdf2==2.7.6
+requests==2.31.0
+python-dotenv==1.0.0
+soundfile==0.12.1
+pydub==0.25.1
+asyncio==3.4.3
+aiofiles==23.2.1
