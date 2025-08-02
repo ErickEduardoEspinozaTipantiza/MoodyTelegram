@@ -35,6 +35,7 @@ class MoodyBot:
         # Comandos básicos
         self.application.add_handler(CommandHandler("start", start_command))
         self.application.add_handler(CommandHandler("help", help_command))
+        self.application.add_handler(CommandHandler("resumen", self.resumen_command))
         
         # Callback handlers para botones inline
         self.application.add_handler(CallbackQueryHandler(handle_therapy_selection, pattern="^therapy_"))
@@ -203,6 +204,11 @@ class MoodyBot:
             "Puedes seguir hablando conmigo sobre cualquier tema relacionado con tus emociones.\n\n"
             "Escribe '/resumen' en cualquier momento para generar un nuevo análisis actualizado."
         )
+    
+    async def resumen_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Maneja el comando /resumen"""
+        from handlers.chat_handler import generate_conversation_summary
+        await generate_conversation_summary(update, context)
     
     async def error_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Maneja errores del bot"""

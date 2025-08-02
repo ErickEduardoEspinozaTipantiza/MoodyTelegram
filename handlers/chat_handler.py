@@ -22,7 +22,7 @@ async def handle_chat_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_message = update.message.text
     
     # Verificar si el usuario quiere generar un resumen
-    if user_message.lower() in ['/resumen', '/summary', 'generar resumen', 'resumen de conversacion', 'finalizar']:
+    if user_message.lower().strip() in ['/resumen', '/summary', 'resumen', 'generar resumen', 'resumen de conversacion', 'finalizar']:
         await generate_conversation_summary(update, context)
         return
     
@@ -155,7 +155,7 @@ def create_summary_prompt(user_session: dict, chat_history: list) -> str:
         conversation_text += f"   Respuesta: {exchange['bot']}\n"
     
     prompt = f"""
-Como especialista en salud mental, analiza la siguiente información completa y genera un resumen profesional:
+Como psicólogo clínico profesional, analiza la siguiente información y genera un resumen con recomendaciones específicas y aplicables:
 
 INFORMACIÓN INICIAL:
 - Tipo de terapia seleccionada: {therapy_type}
@@ -164,21 +164,39 @@ INFORMACIÓN INICIAL:
 CONVERSACIÓN COMPLETA:
 {conversation_text}
 
-Por favor, genera un RESUMEN PROFESIONAL que incluya:
+Por favor, genera un ANÁLISIS PROFESIONAL ESTRUCTURADO que incluya:
 
-1. **ANÁLISIS EMOCIONAL GENERAL**: Identifica los patrones emocionales y temas recurrentes en la conversación.
+1. **EVALUACIÓN CLÍNICA**: Identifica patrones emocionales, pensamientos recurrentes y comportamientos observados durante la conversación.
 
-2. **INSIGHTS PRINCIPALES**: Los descubrimientos más importantes sobre el estado emocional y mental del usuario.
+2. **DIAGNÓSTICO SITUACIONAL**: Análisis de factores desencadenantes, recursos personales disponibles y áreas de vulnerabilidad.
 
-3. **PROGRESO OBSERVADO**: Cómo ha evolucionado la conversación y si se observa algún cambio positivo.
+3. **INTERVENCIONES ESPECÍFICAS**: Recomendaciones concretas con técnicas aplicables:
+   - Técnicas de regulación emocional específicas (con pasos detallados)
+   - Ejercicios prácticos para implementar en casa
+   - Estrategias de afrontamiento personalizadas
+   - Cronograma semanal de actividades terapéuticas
 
-4. **RECOMENDACIONES ESPECÍFICAS**: Sugerencias concretas basadas en todo lo conversado.
+4. **PLAN DE SEGUIMIENTO**: 
+   - Objetivos terapéuticos específicos a corto plazo (1-4 semanas)
+   - Indicadores de progreso medibles
+   - Frecuencia de sesiones recomendada
+   - Criterios para derivación a especialista
 
-5. **PRÓXIMOS PASOS**: Qué debería hacer el usuario para continuar su bienestar emocional.
+5. **RECURSOS COMPLEMENTARIOS**: 
+   - Aplicaciones móviles específicas para el caso
+   - Lecturas recomendadas
+   - Técnicas de mindfulness adaptadas al perfil
+   - Ejercicios físicos terapéuticos
 
-6. **OBSERVACIONES PROFESIONALES**: Notas importantes para un seguimiento futuro.
+6. **ALERTAS CLÍNICAS**: Señales de alarma que requieren atención inmediata profesional.
 
-Usa un tono profesional pero empático. El resumen debe ser útil tanto para el usuario como para un profesional de salud mental.
+IMPORTANTE: Las recomendaciones deben ser:
+- Específicas y medibles (no genéricas)
+- Aplicables inmediatamente
+- Basadas en evidencia científica
+- Adaptadas al perfil emocional del usuario
+
+Usa terminología profesional pero accesible. El análisis será revisado por profesionales de salud mental.
 """
     return prompt
 

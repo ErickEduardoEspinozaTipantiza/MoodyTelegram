@@ -70,6 +70,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 **Comandos disponibles:**
 /start - Iniciar o reiniciar el bot
 /help - Mostrar esta ayuda
+/resumen - Generar resumen completo de la conversación (solo en chat)
 
 **Nota importante:**
 Este bot brinda orientación básica y no reemplaza la consulta con un profesional de la salud mental.

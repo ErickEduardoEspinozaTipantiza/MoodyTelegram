@@ -49,11 +49,11 @@ class OllamaClient:
                 }
             }
             
-            # Hacer la petición
+            # Hacer la petición con timeout aumentado
             response = requests.post(
                 f"{self.api_url}/api/generate",
                 json=data,
-                timeout=30
+                timeout=60  # Aumentado de 30 a 60 segundos
             )
             
             if response.status_code == 200:
@@ -63,6 +63,9 @@ class OllamaClient:
                 logger.error(f"Error en Ollama: {response.status_code}")
                 return self._get_fallback_response(prompt)
                 
+        except requests.exceptions.Timeout:
+            logger.warning("Timeout conectando con Ollama, usando respuesta de respaldo")
+            return self._get_fallback_response(prompt)
         except requests.RequestException as e:
             logger.error(f"Error conectando con Ollama: {e}")
             return self._get_fallback_response(prompt)

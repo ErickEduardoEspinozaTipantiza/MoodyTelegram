@@ -5,6 +5,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+from email.header import Header
+from datetime import datetime
 from config.settings import EMAIL_USER, EMAIL_PASSWORD, SMTP_SERVER, SMTP_PORT
 
 logger = logging.getLogger(__name__)
@@ -28,7 +30,7 @@ async def send_email_with_pdf(pdf_path: str, user_id: int, is_summary: bool = Fa
         msg['To'] = "crisgeopro2003@gmail.com"
         
         if is_summary:
-            msg['Subject'] = f"Resumen Completo de Conversación - Usuario {user_id}"
+            msg['Subject'] = Header(f"Resumen Completo de Conversación - Usuario {user_id}", 'utf-8')
             filename = f"resumen_completo_moody_{user_id}.pdf"
             body = f"""
 Estimado equipo,
@@ -37,7 +39,7 @@ Se adjunta el resumen completo de la conversación con análisis profesional gen
 
 Detalles del resumen:
 - Usuario ID: {user_id}
-- Fecha de generación: {os.path.getctime(pdf_path)}
+- Fecha de generación: {datetime.now().strftime('%d/%m/%Y %H:%M')}
 - Archivo: {filename}
 
 Este resumen incluye:
@@ -53,7 +55,7 @@ Saludos,
 Bot Moody - Sistema de Orientación Psicológica
             """
         else:
-            msg['Subject'] = f"Reporte de Orientación Psicológica - Usuario {user_id}"
+            msg['Subject'] = Header(f"Reporte de Orientación Psicológica - Usuario {user_id}", 'utf-8')
             filename = f"reporte_moody_{user_id}.pdf"
             body = f"""
 Estimado equipo,
@@ -62,7 +64,7 @@ Se adjunta el reporte de orientación psicológica generado por el Bot Moody.
 
 Detalles del reporte:
 - Usuario ID: {user_id}
-- Fecha de generación: {os.path.getctime(pdf_path)}
+- Fecha de generación: {datetime.now().strftime('%d/%m/%Y %H:%M')}
 - Archivo: {filename}
 
 Este reporte contiene:
@@ -86,7 +88,7 @@ Bot Moody - Sistema de Orientación Psicológica
         encoders.encode_base64(part)
         part.add_header(
             'Content-Disposition',
-            f'attachment; filename= {filename}'
+            f'attachment; filename="{filename}"'
         )
         msg.attach(part)
         
@@ -98,7 +100,9 @@ Bot Moody - Sistema de Orientación Psicológica
         if EMAIL_PASSWORD:
             server.login(EMAIL_USER, EMAIL_PASSWORD)
         
-        server.sendmail(EMAIL_USER, "crisgeopro2003@gmail.com", msg.as_string())
+        # Convertir mensaje a string con encoding UTF-8
+        msg_string = msg.as_string().encode('utf-8').decode('utf-8')
+        server.sendmail(EMAIL_USER, "crisgeopro2003@gmail.com", msg_string)
         server.quit()
         
         logger.info(f"Email enviado exitosamente para el usuario {user_id}")
