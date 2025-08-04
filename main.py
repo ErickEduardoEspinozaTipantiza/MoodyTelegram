@@ -86,6 +86,8 @@ class MoodyBot:
             await self.download_summary_action(update, context)
         elif action == "continue_chat":
             await self.continue_chat_action(update, context)
+        elif action == "help":
+            await self.help_action(update, context)
         elif action == "restart":
             await start_command(update, context)
     
@@ -98,15 +100,26 @@ class MoodyBot:
             user_session = load_user_session(user_id)
             
             if "pdf_path" in user_session:
-                success = await send_email_with_pdf(user_session["pdf_path"], user_id)
+                success = await send_email_with_pdf(user_session["pdf_path"], user_id, False, user_session)
                 if success:
-                    message = "✅ Reporte enviado exitosamente a crisgeopro2003@gmail.com"
+                    # Obtener información del especialista para mostrar en el mensaje
+                    from config.settings import SPECIALISTS
+                    therapy_type = user_session.get("therapy_type", "individual")
+                    specialist = SPECIALISTS.get(therapy_type, SPECIALISTS["individual"])
+                    
+                    message = f"""✅ **Reporte enviado exitosamente**
+
+📧 **Enviado a:** {specialist['email']}
+👨‍⚕️ **Especialista:** {specialist['name']}
+📱 **Contacto:** {specialist['phone']}
+
+El especialista recibirá tu reporte completo y podrá contactarte para seguimiento profesional."""
                 else:
                     message = "❌ Error al enviar el email. Intenta más tarde."
             else:
                 message = "❌ No se encontró el reporte para enviar."
                 
-            await update.callback_query.edit_message_text(message)
+            await update.callback_query.edit_message_text(message, parse_mode='Markdown')
             
         except Exception as e:
             logger.error(f"Error enviando email: {e}")
@@ -162,15 +175,26 @@ class MoodyBot:
             
             summary_pdf_path = user_session.get("summary_pdf_path")
             if summary_pdf_path and os.path.exists(summary_pdf_path):
-                success = await send_email_with_pdf(summary_pdf_path, user_id, is_summary=True)
+                success = await send_email_with_pdf(summary_pdf_path, user_id, is_summary=True, user_session=user_session)
                 if success:
-                    message = "✅ Resumen completo enviado exitosamente a crisgeopro2003@gmail.com"
+                    # Obtener información del especialista para mostrar en el mensaje
+                    from config.settings import SPECIALISTS
+                    therapy_type = user_session.get("therapy_type", "individual")
+                    specialist = SPECIALISTS.get(therapy_type, SPECIALISTS["individual"])
+                    
+                    message = f"""✅ **Resumen completo enviado exitosamente**
+
+📧 **Enviado a:** {specialist['email']}
+👨‍⚕️ **Especialista:** {specialist['name']}
+📱 **Contacto:** {specialist['phone']}
+
+El especialista recibirá el resumen completo de tu conversación para seguimiento profesional."""
                 else:
                     message = "❌ Error al enviar el email del resumen. Intenta más tarde."
             else:
                 message = "❌ No se encontró el resumen para enviar."
                 
-            await update.callback_query.edit_message_text(message)
+            await update.callback_query.edit_message_text(message, parse_mode='Markdown')
             
         except Exception as e:
             logger.error(f"Error enviando resumen por email: {e}")
@@ -196,6 +220,11 @@ class MoodyBot:
             await update.callback_query.edit_message_text(
                 "❌ No se pudo encontrar el archivo de resumen."
             )
+    
+    async def help_action(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Muestra la ayuda del bot"""
+        from handlers.start_handler import help_command
+        await help_command(update, context)
     
     async def continue_chat_action(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Continúa la conversación después del resumen"""

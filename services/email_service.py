@@ -11,7 +11,7 @@ from config.settings import EMAIL_USER, EMAIL_PASSWORD, SMTP_SERVER, SMTP_PORT
 
 logger = logging.getLogger(__name__)
 
-async def send_email_with_pdf(pdf_path: str, user_id: int, is_summary: bool = False) -> bool:
+async def send_email_with_pdf(pdf_path: str, user_id: int, is_summary: bool = False, user_session: dict = None) -> bool:
     """Envía el PDF por email"""
     try:
         # Verificar configuración de email
@@ -23,6 +23,21 @@ async def send_email_with_pdf(pdf_path: str, user_id: int, is_summary: bool = Fa
         if not os.path.exists(pdf_path):
             logger.error(f"Archivo PDF no encontrado: {pdf_path}")
             return False
+        
+        # Obtener información del especialista si tenemos la sesión
+        specialist_info = ""
+        if user_session:
+            from config.settings import SPECIALISTS
+            therapy_type = user_session.get("therapy_type", "individual")
+            specialist = SPECIALISTS.get(therapy_type, SPECIALISTS["individual"])
+            specialist_info = f"""
+
+ESPECIALISTA ASIGNADO:
+{specialist['name']}
+{specialist['title']}
+Email: {specialist['email']}
+Teléfono: {specialist['phone']}
+Especialidades: {', '.join(specialist['specialties'])}"""
         
         # Configurar el mensaje
         msg = MIMEMultipart()
@@ -47,7 +62,7 @@ Este resumen incluye:
 • Historial completo de conversación
 • Insights y patrones identificados por IA
 • Recomendaciones profesionales específicas
-• Próximos pasos sugeridos
+• Próximos pasos sugeridos{specialist_info}
 
 Por favor, revisar para seguimiento profesional.
 
@@ -70,7 +85,7 @@ Detalles del reporte:
 Este reporte contiene:
 • Respuestas del cuestionario de terapia
 • Análisis de emociones por voz
-• Recomendaciones personalizadas
+• Recomendaciones personalizadas{specialist_info}
 
 Por favor, revisar y dar seguimiento según corresponda.
 

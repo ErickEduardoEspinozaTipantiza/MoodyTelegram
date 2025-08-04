@@ -1,5 +1,6 @@
 import os
 import logging
+import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config.settings import BotStates, MAX_AUDIO_DURATION
@@ -68,8 +69,36 @@ async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYP
             user_session["pdf_path"] = pdf_path
             save_user_session(user_id, user_session)
         
-        # Mostrar resultados
+        # Mostrar resultados y permitir descarga/email
         await show_analysis_results(update, context, processing_msg)
+        
+        # Esperar un momento y luego cambiar a estado de chat
+        await asyncio.sleep(2)  # Esperar 2 segundos para que el usuario vea los resultados
+        
+        # Automáticamente cambiar a estado de chat después de mostrar resultados
+        user_session["state"] = BotStates.CHAT_WITH_LLM
+        save_user_session(user_id, user_session)
+        
+        # Enviar mensaje informativo sobre el chat
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="""
+💬 **¡Perfecto! Ya tienes tu análisis completo**
+
+**Ahora puedes conversar conmigo libremente:**
+• Pregúntame sobre tu estado emocional
+• Pide consejos específicos sobre tu situación
+• Explora temas relacionados a tu bienestar
+• Comparte cómo te sientes ahora
+
+**Comandos útiles:**
+• `/resumen` - Generar análisis completo de nuestra conversación
+• `/start` - Comenzar un nuevo análisis desde cero
+
+✨ **Escribe cualquier mensaje para empezar nuestra conversación!**
+""",
+            parse_mode='Markdown'
+        )
         
         # Limpiar archivo de audio temporal
         if os.path.exists(audio_path):
@@ -89,11 +118,16 @@ async def show_analysis_results(update: Update, context: ContextTypes.DEFAULT_TY
     emotion = user_session.get("emotion_detected", "neutral")
     emotion_description = user_session.get("emotion_description", "")
     therapy_name = user_session.get("therapy_name", "")
+    therapy_type = user_session.get("therapy_type", "individual")
     
     emotion_emoji = get_emotion_emoji(emotion)
     
+    # Obtener información del especialista
+    from config.settings import SPECIALISTS
+    specialist = SPECIALISTS.get(therapy_type, SPECIALISTS["individual"])
+    
     results_message = f"""
-🎯 **RESULTADOS DEL ANÁLISIS**
+🎯 **RESULTADOS DEL ANÁLISIS COMPLETO**
 
 📋 **Tipo de terapia:** {therapy_name}
 {emotion_emoji} **Análisis emocional:** {emotion_description}
@@ -101,16 +135,23 @@ async def show_analysis_results(update: Update, context: ContextTypes.DEFAULT_TY
 ✅ **Tu reporte está listo**
 
 El análisis completo incluye:
-• Tus respuestas al cuestionario
-• Análisis de emociones por voz  
-• Recomendaciones personalizadas
+• Tus respuestas al cuestionario personalizado
+• Análisis de emociones por voz con IA
+• Recomendaciones profesionales específicas
 • Contacto de especialista de referencia
+
+👨‍⚕️ **ESPECIALISTA ASIGNADO:**
+**{specialist['name']}**
+{specialist['title']}
+📧 {specialist['email']}
+📱 {specialist['phone']}
+⭐ {specialist['experience']}
 
 ¿Qué te gustaría hacer ahora?
 """
     
     keyboard = [
-        [InlineKeyboardButton("📧 Enviar por email", callback_data="action_send_email")],
+        [InlineKeyboardButton("📧 Enviar por email al especialista", callback_data="action_send_email")],
         [InlineKeyboardButton("📥 Descargar PDF", callback_data="action_download_pdf")],
         [InlineKeyboardButton("💬 Conversar con IA", callback_data="action_chat_llm")],
         [InlineKeyboardButton("🔄 Nuevo análisis", callback_data="action_restart")]

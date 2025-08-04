@@ -21,9 +21,29 @@ async def handle_chat_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     user_message = update.message.text
     
-    # Verificar si el usuario quiere generar un resumen
+    # Verificar comandos especiales
     if user_message.lower().strip() in ['/resumen', '/summary', 'resumen', 'generar resumen', 'resumen de conversacion', 'finalizar']:
         await generate_conversation_summary(update, context)
+        return
+    
+    # Si recibe /start, redirigir al inicio
+    if user_message.lower().strip() == '/start':
+        await update.message.reply_text(
+            """
+🔄 **Iniciando nuevo análisis...**
+
+Se cerrará la conversación actual y comenzarás un nuevo proceso de análisis.
+
+Para mantener esta conversación y generar un resumen completo, usa `/resumen` antes de empezar uno nuevo.
+"""
+        )
+        # Resetear el estado para permitir nuevo análisis
+        user_session["state"] = BotStates.INITIAL
+        save_user_session(user_id, user_session)
+        
+        # Importar y llamar al start handler
+        from handlers.start_handler import start_command
+        await start_command(update, context)
         return
     
     # Mostrar indicador de escritura
@@ -44,18 +64,42 @@ async def handle_chat_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                 for part in parts:
                     await update.message.reply_text(part)
             else:
-                # Agregar botones de acción después de algunas conversaciones
+                # Agregar botones de acción y recordatorios según el número de conversaciones
                 reply_markup = None
                 chat_count = len(user_session.get("chat_history", []))
                 
-                if chat_count >= 3 and chat_count % 5 == 0:  # Cada 5 mensajes después del 3ro
+                # Primer recordatorio después de 3 mensajes
+                if chat_count == 2:  # Va a ser 3 después de guardar este mensaje
                     keyboard = [
                         [InlineKeyboardButton("📋 Generar resumen de conversación", callback_data="action_generate_summary")],
                         [InlineKeyboardButton("🔄 Nueva consulta", callback_data="action_restart")]
                     ]
                     reply_markup = InlineKeyboardMarkup(keyboard)
+                    
+                # Recordatorios cada 4 mensajes después del mensaje 6
+                elif chat_count >= 5 and (chat_count - 2) % 4 == 0:
+                    keyboard = [
+                        [InlineKeyboardButton("📋 Generar resumen completo", callback_data="action_generate_summary")],
+                        [InlineKeyboardButton("💾 Descargar mi reporte", callback_data="action_download_pdf")],
+                        [InlineKeyboardButton("🔄 Comenzar nuevo análisis", callback_data="action_restart")]
+                    ]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
                 
                 await update.message.reply_text(response, reply_markup=reply_markup)
+                
+                # Mostrar recordatorio textual cada cierto número de mensajes
+                if chat_count == 2:
+                    await context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text="💡 **Recordatorio:** Puedes escribir `/resumen` en cualquier momento para generar un análisis completo de nuestra conversación, o `/start` para comenzar un nuevo análisis.",
+                        parse_mode='Markdown'
+                    )
+                elif chat_count >= 8 and (chat_count - 2) % 6 == 0:
+                    await context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text="📝 **¿Ya tienes suficiente información?** Usa `/resumen` para obtener un análisis profesional completo de toda nuestra conversación.",
+                        parse_mode='Markdown'
+                    )
             
             # Guardar la conversación en la sesión
             if "chat_history" not in user_session:

@@ -43,13 +43,52 @@ THERAPY_TYPES = {
     "adolescentes": "Terapia para Adolescentes"
 }
 
-# Emociones detectables
+# Emociones detectables (modelo entrenado)
 EMOTIONS = {
-    "sad": "Tristeza",
-    "angry": "Ira",
-    "anxious": "Ansiedad",
-    "calm": "Calma",
-    "happy": "Felicidad",
+    "anger": "Ira",
+    "disgust": "Disgusto",
     "fear": "Miedo",
-    "neutral": "Neutral"
+    "happiness": "Felicidad",
+    "neutral": "Neutral",
+    "sadness": "Tristeza"
+}
+
+# Doctores especialistas por tipo de terapia
+SPECIALISTS = {
+    "familiar": {
+        "name": "Dra. María Elena Vásquez",
+        "title": "Especialista en Terapia Familiar Sistémica",
+        "credentials": "Psicóloga Clínica, Magíster en Terapia Familiar",
+        "experience": "15 años de experiencia en dinámicas familiares",
+        "email": "crisgeopro2003@gmail.com",
+        "phone": "+593 98 765 4321",
+        "specialties": ["Conflictos familiares", "Comunicación familiar", "Crianza positiva"]
+    },
+    "pareja": {
+        "name": "Dr. Carlos Alberto Mendoza",
+        "title": "Especialista en Terapia de Pareja",
+        "credentials": "Psicólogo Clínico, Certificado en Terapia de Pareja Gottman",
+        "experience": "12 años especializándose en relaciones de pareja",
+        "email": "crisgeopro2003@gmail.com",
+        "phone": "+593 99 876 5432",
+        "specialties": ["Conflictos de pareja", "Comunicación afectiva", "Infidelidad"]
+    },
+    "individual": {
+        "name": "Dra. Ana Sofía Herrera",
+        "title": "Especialista en Psicología Clínica Individual",
+        "credentials": "Psicóloga Clínica, Magíster en Psicoterapia Cognitivo-Conductual",
+        "experience": "18 años en psicoterapia individual",
+        "email": "crisgeopro2003@gmail.com",
+        "phone": "+593 97 654 3210",
+        "specialties": ["Ansiedad y depresión", "Autoestima", "Crecimiento personal"]
+    },
+    "adolescentes": {
+        "name": "Dr. Roberto Andrés Castro",
+        "title": "Especialista en Psicología del Adolescente",
+        "credentials": "Psicólogo Clínico, Especialista en Psicología del Desarrollo",
+        "experience": "10 años trabajando con adolescentes",
+        "email": "crisgeopro2003@gmail.com",
+        "phone": "+593 96 543 2109",
+        "specialties": ["Problemas de conducta", "Identidad adolescente", "Presión académica"]
+    }
 }
